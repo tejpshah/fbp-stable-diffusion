@@ -45,6 +45,16 @@ vae =vae.to(device)
 # backward procession converge to Gausian noise and relevant information respectively. 
 scheduler = LMSDiscreteScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule='scaled_linear', num_train_timesteps=1000)
 
+def decode_variations(latents, scale=0.20):
+
+  # creates random noise vector of same size as input
+  noise = torch.randn_like(latents)
+  z = scale * noise + (1 - scale) * latents 
+  normalized = (z - z.mean()) / z.std()
+
+  # updates the random noise vector to be peturbed by some factor
+  return normalized
+
 def encode_text(prompt):
 
     # CONDITIONED: Generates embeddings for the text prompt
@@ -117,45 +127,25 @@ def decode_latent(latents, beta=0.18215):
     
     return decoded 
 
-def decode_variations(latents, scale=0.20):
-  noise = torch.randn_like(latents)
-  z = scale * noise + (1 - scale) * latents 
-  normalized = (z - z.mean()) / z.std()
-  return normalized
-
 def inference(prompts, height=512, width=512, time=50, guidance_scale=7.5, latents=None, generate_video=False, batch_size=2):
-
-    # since we don't have many gpus, we run each prompt individually 
-    generations = [] 
-    videos = [] 
 
     # automatically cast the prompts to array 
     if type(prompts) == str: prompts = [prompts]
 
-    for i in range(len(prompts)):
+    # encode text prompt to guide diffusion process from Gaussian Noise
+    text_embedding = encode_text(prompts)
 
-        # encode text prompt to guide diffusion process from Gaussian Noise
-        text_embedding = encode_text(prompts[i])
-
-        # resultant vector after UNET backward diffusion process with CLIP Guided Text Diffusion 
-        final_latent = reverse_diffusion_process(text_embedding, height=height, width=width, time=time, guidance_scale=guidance_scale, latents=latents, generate_video=generate_video)
-        
+    # resultant vector after UNET backward diffusion process with CLIP Guided Text Diffusion 
+    latents = reverse_diffusion_process(text_embedding, height=height, width=width, time=time, guidance_scale=guidance_scale, latents=latents, generate_video=generate_video)
+    
+    # stores all the video frames
+    videos = [] 
+    for i in tqdm(range(0,len(latents), batch_size)):
         # use VAE to decode final latents to generate the image outputs 
-        decoded_outputs = decode_latent(final_latent[-1])
-
-        # add generated images to all the generated images that we have 
-        generations.append(decoded_outputs)
-
-        # stores all the video frames for a particular generation
-        if generate_video: 
-            frames = [] 
-            for i in tqdm(range(0,len(latents), batch_size)):
-                frame = decode_latent(decoded_outputs[i:i+batch_size])
-                frames.extend(frame)
-
-            # add generated videos to all the generated images that we have 
-            videos.append(frames)
+        frame = decode_latent(latents[i:i+batch_size])
         
-    # return the generated images after inference
-    return generations
+        # appends the most recent video frame
+        videos.extend(frame) 
 
+    # return the generated images after inference
+    return videos
