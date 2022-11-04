@@ -111,12 +111,28 @@ def decode_latent(latents, beta=0.18215):
     
     return decoded 
 
-def inference(num_images, prompts, height=512, width=512, time=50, guidance_scale=7.5, latents=None):
+def inference(prompts, height=512, width=512, time=50, guidance_scale=7.5, latents=None):
+
+    # since we don't have many gpus, we run each prompt individually 
     generations = [] 
+
+    # automatically cast the prompts to array 
     if type(prompts) == str: prompts = [prompts]
-    for _ in range(num_images):
-        text_embedding = encode_text(prompts)
+
+    for i in range(len(prompts)):
+
+        # encode text prompt to guide diffusion process from Gaussian Noise
+        text_embedding = encode_text(prompts[i])
+
+        # resultant vector after UNET backward diffusion process with CLIP Guided Text Diffusion 
         final_latent = reverse_diffusion_process(text_embedding, height=height, width=width, time=time, guidance_scale=guidance_scale, latents=latents)
+        
+        # use VAE to decode final latents to generate the image outputs 
         decoded_outputs = decode_latent(final_latent)
-    return generations.append(decoded_outputs)
+
+        # add generated images to all the generated images that we have 
+        generations.append(decoded_outputs)
+
+    # return the generated images after inference
+    return generations
 
