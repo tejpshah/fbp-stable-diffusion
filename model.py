@@ -22,7 +22,6 @@ UNET(FORWARD_LATENT_j) ~= FORWARD_LATENT_{j-1} for j = n, n-1, ..., 1
 STEP 3: After the backward diffusion process, convert the processed latent vector at the end of backward diffusion using the decoder.
 GENERATED_IMAGES = VAE.DECODE()
 """
-
 # Load Pre-Trained Tokenizer (CLIP : Contrastive Language Image Pre-Training) and Encoder
 # tokenizer(prompt) = [...,...,...] consists of atomic tokens 
 # text_encoder(tokenizer(prompt)) = [[..,...], [...,...], [...,...]] converts each atomic token into embeddings
@@ -60,7 +59,7 @@ def encode_text(prompt):
     embeddings = torch.cat([tokenized_text_unconditioned, tokenized_text_conditioned])
     return embeddings  
 
-def reverse_diffusion_process(text_embeddings, height=512, width=512, time=50, guidance_scale=7.5, latents=None):
+def reverse_diffusion_process(text_embeddings, height=512, width=512, time=50, guidance_scale=7.5, latents=None, generate_video = False):
 
     # generates latent vector if it doesn't exist and sends it to device
     if latents is None: latents = torch.randn(text_embeddings.shape[0] // 2, unet.in_channels, height//8, width//8)
@@ -69,6 +68,9 @@ def reverse_diffusion_process(text_embeddings, height=512, width=512, time=50, g
     # initializes scheduler and first latent at t_n with some noise 
     scheduler.set_timesteps(time)
     latents *= scheduler.sigmas[0]       
+
+    # saves all the latents for video generation
+    all_latents = []
     
     # use autocast to dynamically choose dtypes for mixed precision
     with autocast(device): 
@@ -91,7 +93,11 @@ def reverse_diffusion_process(text_embeddings, height=512, width=512, time=50, g
             # determine the noisy sample with the guidance
             latents = scheduler.step(z, i, latents)['prev_sample']
 
-    return latents 
+            # append latent to all_latents for video generation
+            all_latents.append(latents)
+
+    if generate_video: return torch.cat(all_latents, dim=0)
+    else: return latents 
 
 def decode_latent(latents, beta=0.18215):
 
@@ -111,10 +117,17 @@ def decode_latent(latents, beta=0.18215):
     
     return decoded 
 
-def inference(prompts, height=512, width=512, time=50, guidance_scale=7.5, latents=None):
+def decode_variations(latents, scale=0.20):
+  noise = torch.randn_like(latents)
+  z = scale * noise + (1 - scale) * latents 
+  normalized = (z - z.mean()) / z.std()
+  return normalized
+
+def inference(prompts, height=512, width=512, time=50, guidance_scale=7.5, latents=None, generate_video=False, batch_size=2):
 
     # since we don't have many gpus, we run each prompt individually 
     generations = [] 
+    videos = [] 
 
     # automatically cast the prompts to array 
     if type(prompts) == str: prompts = [prompts]
@@ -125,14 +138,24 @@ def inference(prompts, height=512, width=512, time=50, guidance_scale=7.5, laten
         text_embedding = encode_text(prompts[i])
 
         # resultant vector after UNET backward diffusion process with CLIP Guided Text Diffusion 
-        final_latent = reverse_diffusion_process(text_embedding, height=height, width=width, time=time, guidance_scale=guidance_scale, latents=latents)
+        final_latent = reverse_diffusion_process(text_embedding, height=height, width=width, time=time, guidance_scale=guidance_scale, latents=latents, generate_video=generate_video)
         
         # use VAE to decode final latents to generate the image outputs 
-        decoded_outputs = decode_latent(final_latent)
+        decoded_outputs = decode_latent(final_latent[-1])
 
         # add generated images to all the generated images that we have 
         generations.append(decoded_outputs)
 
+        # stores all the video frames for a particular generation
+        if generate_video: 
+            frames = [] 
+            for i in tqdm(range(0,len(latents), batch_size)):
+                frame = decode_latent(decoded_outputs[i:i+batch_size])
+                frames.extend(frame)
+
+            # add generated videos to all the generated images that we have 
+            videos.append(frames)
+        
     # return the generated images after inference
     return generations
 
