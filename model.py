@@ -6,7 +6,7 @@ from diffusers import UNet2DConditionModel
 from diffusers import AutoencoderKL
 from diffusers import LMSDiscreteScheduler 
 
-HF_AUTH_TOKEN = ""
+HF_AUTH_TOKEN = "INSERT TOKEN HERE"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 """
