@@ -30,3 +30,5 @@ like CLIP.
 (3) Video Generation:
 To generate video generations, simply store the latent at each time step of the diffusion process and then decoded each latent to a frame and create a video
 that generates the video from all the frames that are decoded. 
+
+Update
