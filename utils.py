@@ -1,4 +1,6 @@
 import os 
+import cv2 
+import numpy as np 
 from PIL import Image
 import matplotlib.pyplot as plt 
 
@@ -21,7 +23,6 @@ def generate_image_grid(outputs, r=1, c=4, folder='data/image_grid/'):
         ax.set_xticks([])
         ax.set_yticks([])
 
-    # SAVES THE GRID AS PNG TO THE FOLDER
     if not os.path.exists(folder):
         os.makedirs(folder)
     grid_number = len(os.listdir(folder))
@@ -36,7 +37,27 @@ def generate_image_grid(outputs, r=1, c=4, folder='data/image_grid/'):
     # DISPLAYS THE GRID OUTPUT TO SCREEN 
     plt.show()
 
+def generate_video(frames, folder="/data/videos/", fps=10):
 
+    # generates videos folders if it doesn't exist
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    video_number = len(os.listdir(folder))
 
+    # this genreates the size of the video
+    size = (frames[0].width, frames[0].height)
 
+    # this lets you generate the video 
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')    
+    save_at = folder + str(video_number) + ".mp4"
 
+    print(save_at)
+    video = cv2.VideoWriter(save_at, fourcc, fps, size)
+
+    # this adds each frame to the video and writes with cv2
+    for frame in frames:
+        tmp_img = frame.copy()
+        video.write(cv2.cvtColor(np.array(tmp_img), cv2.COLOR_RGB2BGR))
+    
+    # this releases the video from cv2
+    video.release()
