@@ -33,3 +33,10 @@ like CLIP.
 To generate video generations, simply store the latent at each time step of the diffusion process and then decode each latent to a frame and create a video
 that generates the video from all the frames that are decoded. 
 
+## (4) Takeaways 
+It was interesting to learn how to use different pre-trained modules like UNET, CLIP, and VAE to do inference. 
+Building out the pipeline for image-inference from scratch crucially enables you to build other interesting features like image-variations or video-generation.
+I found it challenging to run it on the `ilab` machines since enough resources were not allocated to download the models to perform inference. 
+Otherwise, if I had enough resources, I would have explored looking into splitting image generation on to multiple GPUs to speed up inference time. 
+Instead, I decided to run my scripts on a Google Colab environment so I would have access to a GPU for image generation. 
+After generating the first 5 text prompts, I use GPT-3 to generate me another 44 text prompts to save time. 
