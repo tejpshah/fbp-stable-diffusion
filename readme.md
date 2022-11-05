@@ -1,4 +1,4 @@
-# Foundations of Business Programming, Fall 2022, Tej Shah
+# Foundations of Business Programming | F22 Tej Shah
 This project provided me practical exposure to implementing state of the art pre-trained models into practical application.
 In the last several months, there is a surge in popularity surrounding Generative AI with the rise of notable image generation
 models such as DALLE-2, Imagen, and more. Stable Diffusion is an open-source version of image generation which has so far 
@@ -9,7 +9,7 @@ In this project, you take as input text prompts in `prompts.txt` which yields th
 
 To make each of these possible, I detail the main ideas below:
 
-(1) Image Generation:
+## (1) Image Generation:
 Stable Diffusion is trained on a vast variety of images from the Internet. As part of the diffusion training process, there
 is a forward process and a backward process. For the forward process, random noise is added at each timestep for 1000 steps
 until the uncorrupted image is completely destroyed (completely Gausian noise). At that point, the backward process is trained
@@ -21,14 +21,13 @@ Essentially, we can concatentate a good textual representation from SOTA models 
 pre-existing intial latent vector from which we start the backward diffusion process. At the very end of our diffusion process, we have a generated
 latent that can be decoded using a trained Variational Autoencoder (VAE) module. 
 
-(2) Image Variations:
-To generate image variations, crucially realize that stable diffusion is a Markov Chain, which means it obeys the Markov Property: 
+## (2) Image Variations:
+To generate image variations, crucially realize that the diffusion process is a Markov Chain, which means it obeys the Markov Property: 
 the current output only depends on the previous output. Hence, if we have similar starting states from the vector representation, we can
 generate similar variations of an image. To do so, I peturb the initial starting latent with some slight noise before being guided by other representations
 like CLIP. 
 
-(3) Video Generation:
-To generate video generations, simply store the latent at each time step of the diffusion process and then decoded each latent to a frame and create a video
+## (3) Video Generation:
+To generate video generations, simply store the latent at each time step of the diffusion process and then decode each latent to a frame and create a video
 that generates the video from all the frames that are decoded. 
 
-Update
