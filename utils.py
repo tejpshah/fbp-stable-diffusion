@@ -37,7 +37,7 @@ def generate_image_grid(outputs, r=1, c=4, folder='data/image_grid/'):
     # DISPLAYS THE GRID OUTPUT TO SCREEN 
     plt.show()
 
-def generate_video(frames, folder="/data/videos/", fps=10):
+def generate_video(frames, folder="data/videos/", fps=10):
 
     # generates videos folders if it doesn't exist
     if not os.path.exists(folder):

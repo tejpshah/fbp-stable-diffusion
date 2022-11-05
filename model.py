@@ -25,8 +25,8 @@ GENERATED_IMAGES = VAE.DECODE()
 # Load Pre-Trained Tokenizer (CLIP : Contrastive Language Image Pre-Training) and Encoder
 # tokenizer(prompt) = [...,...,...] consists of atomic tokens 
 # text_encoder(tokenizer(prompt)) = [[..,...], [...,...], [...,...]] converts each atomic token into embeddings
-tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32")
-text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
+tokenizer = CLIPTokenizer.from_pretrained('openai/clip-vit-large-patch14')
+text_encoder = CLIPTextModel.from_pretrained('openai/clip-vit-large-patch14')
 text_encoder = text_encoder.to(device)
 
 # Loads Pre-Trained U-Net to support reverse diffusion process, to help predict image image_t -> image_{t-1} for n steps

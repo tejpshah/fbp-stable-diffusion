@@ -15,12 +15,12 @@ with open(FILENAME, 'r') as f:
         for i in range(NUM_GENERATIONS):    
             # GENERATES N IMAGES FROM THE GIVEN PROMPT BASED ON SOME RANDOM Z
             z = torch.randn((1, model.unet.in_channels, 512 // 8, 512 // 8))
-            OriginalImages = model.inference([prompt], time=20, latents=z, generate_video=True)
+            OriginalImages = model.inference([prompt], time=35, latents=z, generate_video=True)
             utils.generate_video(OriginalImages)
 
             # GENERATES A VARIATION OF THE IMAGE PROMPT GIVEN THE RANDOM Z PETURBED
             z_new = model.decode_variations(z, scale=0.2)
-            NewImages = model.inference([prompt], time=20, latents=z_new, generate_video=True)
+            NewImages = model.inference([prompt], time=35, latents=z_new, generate_video=True)
             utils.generate_video(NewImages)
 
             # APPENDS GENERATED AND VARIANT IMAGE TO THE PHOTO
