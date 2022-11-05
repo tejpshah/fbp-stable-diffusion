@@ -9,7 +9,7 @@ In this project, you take as input text prompts in `prompts.txt` which yields th
 
 The output of sample generations from  `prompts.txt` can be seen here [here](data/). 
 
-The githup repository is here: https://github.com/tejpshah/fbp-stable-diffusion
+The github repository is here: https://github.com/tejpshah/fbp-stable-diffusion
 
 To make each of these possible, I detail the main ideas below:
 
