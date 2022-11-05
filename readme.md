@@ -7,3 +7,26 @@ achieved impressive results.
 In this project, you take as input text prompts in `prompts.txt` which yields the following outputs:
 (1) 2 image generations; (2) 2 variations of the images from (1); (3) video generation of diffusion process for all images.
 
+To make each of these possible, I detail the main ideas below:
+
+(1) Image Generation:
+Stable Diffusion is trained on a vast variety of images from the Internet. As part of the diffusion training process, there
+is a forward process and a backward process. For the forward process, random noise is added at each timestep for 1000 steps
+until the uncorrupted image is completely destroyed (completely Gausian noise). At that point, the backward process is trained
+on the objective to reconstruct the less uncorrupted from the t-1th timestep given the context of the corrupted image at the tth timestep.
+For efficiency and better representations, this forward and backward diffusion process happens in the latent space. Naively, to generate
+an image from Gaussian noise enables any image from the distribution of images stable diffusion is trained on to be generated. To guide
+the diffusion process and reduce the search space, we can concatenate other representations during inference in the backward diffusion process.
+Essentially, we can concatentate a good textual representation from SOTA models like OpenAI's CLIP (which jointly align text and images) to our 
+pre-existing intial latent vector from which we start the backward diffusion process. At the very end of our diffusion process, we have a generated
+latent that can be decoded using a trained Variational Autoencoder (VAE) module. 
+
+(2) Image Variations:
+To generate image variations, crucially realize that stable diffusion is a Markov Chain, which means it obeys the Markov Property: 
+the current output only depends on the previous output. Hence, if we have similar starting states from the vector representation, we can
+generate similar variations of an image. To do so, I peturb the initial starting latent with some slight noise before being guided by other representations
+like CLIP. 
+
+(3) Video Generation:
+To generate video generations, simply store the latent at each time step of the diffusion process and then decoded each latent to a frame and create a video
+that generates the video from all the frames that are decoded. 
