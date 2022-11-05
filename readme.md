@@ -7,6 +7,8 @@ achieved impressive results.
 In this project, you take as input text prompts in `prompts.txt` which yields the following outputs:
 (1) 2 image generations; (2) 2 variations of the images from (1); (3) video generation of diffusion process for all images.
 
+The output of sample generations from  `prompts.txt` can be seen here [here](data/). 
+
 To make each of these possible, I detail the main ideas below:
 
 ## (1) Image Generation:
