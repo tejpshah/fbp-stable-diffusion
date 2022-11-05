@@ -9,6 +9,8 @@ In this project, you take as input text prompts in `prompts.txt` which yields th
 
 The output of sample generations from  `prompts.txt` can be seen here [here](data/). 
 
+The githup repository is here: https://github.com/tejpshah/fbp-stable-diffusion
+
 To make each of these possible, I detail the main ideas below:
 
 ## (1) Image Generation:
@@ -39,4 +41,4 @@ Building out the pipeline for image-inference from scratch crucially enables you
 I found it challenging to run it on the `ilab` machines since enough resources were not allocated to download the models to perform inference. 
 Otherwise, if I had enough resources, I would have explored looking into splitting image generation on to multiple GPUs to speed up inference time. 
 Instead, I decided to run my scripts on a Google Colab environment so I would have access to a GPU for image generation. 
-After generating the first 5 text prompts, I use GPT-3 to generate me another 44 text prompts to save time. 
+After generating the first 5 text prompts, I use GPT-3 to generate me another 44 text prompts. 
