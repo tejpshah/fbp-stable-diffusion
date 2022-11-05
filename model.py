@@ -1,13 +1,13 @@
 import torch 
-from torch import autocast 
 from tqdm.auto import tqdm 
 from PIL import Image 
-from transformers import CLIPTextModel, CLIPTokenizer 
+from transformers import CLIPTextModel, CLIPTokenizer
 from diffusers import UNet2DConditionModel
 from diffusers import AutoencoderKL
 from diffusers import LMSDiscreteScheduler 
 
-device = "cuda"
+HF_AUTH_TOKEN = "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"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 """
 GENERAL IDEA BEHIND STABLE DIFFUSION (INFERENCE COMPONENT):
@@ -25,18 +25,18 @@ GENERATED_IMAGES = VAE.DECODE()
 # Load Pre-Trained Tokenizer (CLIP : Contrastive Language Image Pre-Training) and Encoder
 # tokenizer(prompt) = [...,...,...] consists of atomic tokens 
 # text_encoder(tokenizer(prompt)) = [[..,...], [...,...], [...,...]] converts each atomic token into embeddings
-tokenizer = CLIPTokenizer.from_pretrained('openai/clip-vit-large-patch14')
-text_encoder = CLIPTextModel.from_pretrained('openai/clip-vit-large-patch14')
+tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32")
+text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
 text_encoder = text_encoder.to(device)
 
 # Loads Pre-Trained U-Net to support reverse diffusion process, to help predict image image_t -> image_{t-1} for n steps
 # unet(latent_n_forward_process) = latent_1_backward_process
-unet = UNet2DConditionModel.from_pretrained('CompVis/stable-diffusion-v1-4', subfolder='unet', use_auth_token=True)
+unet = UNet2DConditionModel.from_pretrained('CompVis/stable-diffusion-v1-4', subfolder='unet', use_auth_token=HF_AUTH_TOKEN)
 unet = unet.to(device)
 
 # Load Pre-Trained VAE which can encode and decode images from latents
 # vae.encode(image) = latent, vae.decode(latent) = image
-vae = AutoencoderKL.from_pretrained('CompVis/stable-diffusion-v1-4', subfolder='vae', use_auth_token=True)
+vae = AutoencoderKL.from_pretrained('CompVis/stable-diffusion-v1-4', subfolder='vae', use_auth_token=HF_AUTH_TOKEN)
 vae =vae.to(device)
 
 # Load a scheduler for doing inference with the pre-trained models
@@ -83,7 +83,7 @@ def reverse_diffusion_process(text_embeddings, height=512, width=512, time=50, g
     all_latents = []
     
     # use autocast to dynamically choose dtypes for mixed precision
-    with autocast(device): 
+    with torch.cuda.amp.autocast(True):
         for i, t in tqdm(enumerate(scheduler.timesteps)):
 
             # concatenate unconditioned and conditioned vector
